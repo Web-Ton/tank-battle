@@ -12,6 +12,7 @@ import {
   ENEMY_SCORE,
   MAX_ACTIVE_ENEMIES,
   PLAYER_SPAWN,
+  PLAYER_RESPAWN_DELAY,
   ENEMY_SPAWNS,
   enemyTotalForLevel,
 } from './config.js';
@@ -68,6 +69,7 @@ export class Game {
     this.bullets = [];
     this.spawnQueue = this.enemyTotal;
     this.spawnTimer = 0;
+    this.respawnTimer = 0;
     this.state = STATE_PLAYING;
     if (this.spawnEnabled) {
       this.spawnEnemy();
@@ -76,13 +78,49 @@ export class Game {
   }
 
   createPlayer() {
-    const tank = this.makeTank(PLAYER_SPAWN.col, PLAYER_SPAWN.row, {
+    return this.createPlayerAt(PLAYER_SPAWN.col, PLAYER_SPAWN.row);
+  }
+
+  createPlayerAt(col, row) {
+    const tank = this.makeTank(col, row, {
       faction: 'player',
       speed: PLAYER_SPEED,
       dir: 'up',
     });
     tank.cooldown = 0;
     return tank;
+  }
+
+  /** 复活候选点：出生点优先，其次相邻格；全部被占则延迟重试。 */
+  respawnCandidates() {
+    const { col, row } = PLAYER_SPAWN;
+    return [
+      { col, row },
+      { col: col - 1, row },
+      { col: col + 1, row },
+      { col, row: row - 1 },
+      { col, row: row + 1 },
+    ];
+  }
+
+  tryRespawn() {
+    const others = this.enemies.map((enemy) => enemy.rect);
+    for (const cell of this.respawnCandidates()) {
+      const player = this.createPlayerAt(cell.col, cell.row);
+      if (canTankOccupy(this.map, player.rect, others)) {
+        this.player = player;
+        this.respawnTimer = 0;
+        return true;
+      }
+    }
+    this.player = null;
+    this.respawnTimer = PLAYER_RESPAWN_DELAY;
+    return false;
+  }
+
+  updateRespawn(dt) {
+    this.respawnTimer = Math.max(0, this.respawnTimer - dt);
+    if (this.respawnTimer <= 0) this.tryRespawn();
   }
 
   createEnemy(col = 0, row = 0) {
@@ -134,6 +172,7 @@ export class Game {
 
   update(dt, input = {}) {
     if (this.state !== STATE_PLAYING) return;
+    if (!this.player) this.updateRespawn(dt);
     this.updatePlayer(dt, input);
     this.updateEnemies(dt);
     this.updateBullets(dt);
@@ -269,7 +308,9 @@ export class Game {
       this.state = STATE_LOST;
       return;
     }
-    this.player = this.createPlayer();
+    this.player = null;
+    this.respawnTimer = 0;
+    this.tryRespawn();
   }
 
   checkLevelClear() {

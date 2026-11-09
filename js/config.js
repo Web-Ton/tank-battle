@@ -10,6 +10,7 @@ export const BULLET_SPEED = 300;
 
 export const PLAYER_LIVES = 3;
 export const PLAYER_FIRE_COOLDOWN = 0.35;
+export const PLAYER_RESPAWN_DELAY = 0.6;
 export const ENEMY_FIRE_COOLDOWN = 1.2;
 export const ENEMY_SCORE = 100;
 export const MAX_ACTIVE_ENEMIES = 3;

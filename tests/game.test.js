@@ -168,7 +168,6 @@ test('player respawn is delayed while every spawn candidate is blocked', () => {
     [PLAYER_SPAWN.col - 1, PLAYER_SPAWN.row],
     [PLAYER_SPAWN.col + 1, PLAYER_SPAWN.row],
     [PLAYER_SPAWN.col, PLAYER_SPAWN.row - 1],
-    [PLAYER_SPAWN.col, PLAYER_SPAWN.row + 1],
   ]) {
     grid = setCell(grid, col, row, 'S');
   }
