@@ -150,7 +150,7 @@ export class Game {
     else if (input.right) dir = 'right';
     if (dir) {
       this.player.setDirection(dir);
-      this.player.move(dt, this.map, this.enemies);
+      this.player.move(dt, this.map, this.enemies.map((enemy) => enemy.rect));
     }
     if (input.fire) this.fireTank(this.player);
   }
