@@ -42,7 +42,7 @@ test('player bullet destroys a brick tile', () => {
 });
 
 test('player bullet destroys an enemy and awards score', () => {
-  const game = quietGame();
+  const game = quietGame({ grid: emptyGrid() });
   game.enemies.push(game.createEnemy(0, 5));
   const enemy = game.enemies[0];
   enemy.x = 5 * TILE;

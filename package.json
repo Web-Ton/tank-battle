@@ -5,6 +5,6 @@
   "type": "module",
   "description": "Battle City style tank battle game (HTML5 Canvas, zero dependencies)",
   "scripts": {
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.js"
   }
 }

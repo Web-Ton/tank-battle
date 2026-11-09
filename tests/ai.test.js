@@ -31,7 +31,7 @@ test('shouldFire triggers on aligned target or random chance', () => {
   const self = { x: 100, y: 100, w: 28, h: 28 };
   const aligned = { x: 104, y: 300, w: 28, h: 28 };
   const far = { x: 400, y: 400, w: 28, h: 28 };
-  assert.equal(shouldFire(self, aligned, 1, () => 1), true);
-  assert.equal(shouldFire(self, far, 1, () => 0.99), false);
-  assert.equal(shouldFire(self, far, 1, () => 0.01), true);
+  assert.equal(shouldFire(self, aligned, 0, () => 1), true);
+  assert.equal(shouldFire(self, far, 0, () => 0.99), false);
+  assert.equal(shouldFire(self, far, 0, () => 0.01), true);
 });
