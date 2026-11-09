@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>坦克大战 · Tank Battle</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="hud">
+        <span>得分 <strong id="score">0</strong></span>
+        <span>生命 <strong id="lives">3</strong></span>
+        <span class="level" id="level">第 1 关 · 前哨</span>
+      </header>
+      <div class="stage">
+        <canvas id="game" width="416" height="416"></canvas>
+        <div class="overlay" id="overlay">
+          <span class="title" id="overlay-title"></span>
+          <span id="overlay-text"></span>
+          <span class="hint" id="overlay-hint"></span>
+        </div>
+      </div>
+      <p class="help">
+        <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 移动 ·
+        <kbd>空格</kbd> 开火 · <kbd>Enter</kbd> 失败后重开
+      </p>
+    </main>
+
+    <script type="module">
+      import { Game, STATE_LOST, STATE_CLEAR } from './js/game.js';
+      import { draw } from './js/render.js';
+
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const scoreEl = document.getElementById('score');
+      const livesEl = document.getElementById('lives');
+      const levelEl = document.getElementById('level');
+      const overlay = document.getElementById('overlay');
+      const overlayTitle = document.getElementById('overlay-title');
+      const overlayText = document.getElementById('overlay-text');
+      const overlayHint = document.getElementById('overlay-hint');
+
+      const game = new Game();
+      const keys = Object.create(null);
+      let clearTimer = null;
+      let lastTime = null;
+
+      const CONTROL_KEYS = new Set([
+        'ArrowUp',
+        'ArrowDown',
+        'ArrowLeft',
+        'ArrowRight',
+        ' ',
+        'Enter',
+      ]);
+
+      window.addEventListener('keydown', (event) => {
+        if (CONTROL_KEYS.has(event.key)) event.preventDefault();
+        keys[event.key] = true;
+        if (event.key === 'Enter' && game.state === STATE_LOST) {
+          hideOverlay();
+          game.restart();
+        }
+      });
+
+      window.addEventListener('keyup', (event) => {
+        keys[event.key] = false;
+      });
+
+      function hideOverlay() {
+        overlay.classList.remove('visible', 'over');
+      }
+
+      function showOverlay(title, text, hint, over) {
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        overlayHint.textContent = hint;
+        overlay.classList.toggle('over', Boolean(over));
+        overlay.classList.add('visible');
+      }
+
+      function updateHud() {
+        scoreEl.textContent = String(game.score);
+        livesEl.textContent = String(game.lives);
+        levelEl.textContent = `第 ${game.levelNumber} 关 · ${game.level.name}`;
+      }
+
+      function frame(time) {
+        if (lastTime === null) lastTime = time;
+        const dt = Math.min((time - lastTime) / 1000, 0.05);
+        lastTime = time;
+
+        game.update(dt, {
+          up: Boolean(keys.ArrowUp),
+          down: Boolean(keys.ArrowDown),
+          left: Boolean(keys.ArrowLeft),
+          right: Boolean(keys.ArrowRight),
+          fire: Boolean(keys[' ']),
+        });
+
+        draw(ctx, game);
+        updateHud();
+
+        if (game.state === STATE_LOST) {
+          showOverlay('GAME OVER', '基地被毁或生命耗尽', '按 Enter 重新开始', true);
+        } else if (game.state === STATE_CLEAR) {
+          showOverlay('关卡完成', '准备进入下一关…', `得分 ${game.score}`, false);
+          if (clearTimer === null) {
+            clearTimer = window.setTimeout(() => {
+              clearTimer = null;
+              hideOverlay();
+              game.nextLevel();
+            }, 1200);
+          }
+        } else if (overlay.classList.contains('visible')) {
+          hideOverlay();
+        }
+
+        window.requestAnimationFrame(frame);
+      }
+
+      window.requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>
