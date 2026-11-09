@@ -19,7 +19,7 @@ import { TileMap, tileRect, tilesInRect, TILE_BASE } from './map.js';
 import { Tank } from './tank.js';
 import { Bullet } from './bullet.js';
 import { canTankOccupy, rectsOverlap, isInsideWorld } from './collision.js';
-import { chooseDirection, isAligned, shouldFire } from './ai.js';
+import { chooseDirection, isAligned, shouldFire, aimDirection } from './ai.js';
 
 export const STATE_PLAYING = 'playing';
 export const STATE_CLEAR = 'levelclear';
@@ -195,7 +195,8 @@ export class Game {
         : baseRect && isAligned(enemy.rect, baseRect)
           ? baseRect
           : null;
-      if (aimedAt && shouldFire(enemy.rect, aimedAt, enemy.cooldown, this.rng)) {
+      const aimDir = aimedAt ? aimDirection(enemy.rect, aimedAt, 6, enemy.dir) : null;
+      if (aimDir && enemy.dir === aimDir && shouldFire(enemy.rect, aimedAt, enemy.cooldown, this.rng)) {
         this.fireTank(enemy);
       }
     }

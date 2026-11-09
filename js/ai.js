@@ -10,6 +10,22 @@ export function isAligned(a, b, tolerance = 6) {
   return Math.abs(ca.x - cb.x) <= tolerance || Math.abs(ca.y - cb.y) <= tolerance;
 }
 
+/**
+ * 目标与自身在某一轴上对齐时，返回沿该轴指向目标的开火方向；两轴都未对齐返回 null。
+ * 两轴同时对齐（贴合）时按 preferred（当前朝向）优先，避免选到无关轴向。
+ */
+export function aimDirection(self, target, tolerance = 6, preferred = null) {
+  const ca = center(self);
+  const cb = center(target);
+  const dx = cb.x - ca.x;
+  const dy = cb.y - ca.y;
+  const candidates = [];
+  if (Math.abs(dx) <= tolerance) candidates.push(dy < 0 ? 'up' : 'down');
+  if (Math.abs(dy) <= tolerance) candidates.push(dx < 0 ? 'left' : 'right');
+  if (preferred && candidates.includes(preferred)) return preferred;
+  return candidates[0] ?? null;
+}
+
 export function chooseDirection({ dir, dx, dy, canMove, rng = Math.random }) {
   const horizontal = dx < 0 ? 'left' : 'right';
   const vertical = dy < 0 ? 'up' : 'down';
