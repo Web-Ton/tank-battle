@@ -185,6 +185,14 @@ test('player respawn is delayed while every spawn candidate is blocked', () => {
   assert.equal(game.player.x, PLAYER_SPAWN.col * TILE + (TILE - game.player.rect.w) / 2);
 });
 
+test('enemy spawning still works while the player is respawning', () => {
+  const game = quietGame({ grid: emptyGrid() });
+  game.player = null;
+  game.spawnQueue = 1;
+  assert.equal(game.spawnEnemy(), true);
+  assert.equal(game.enemies.length, 1);
+});
+
 test('player bullet does not destroy the friendly base', () => {
   const grid = setCell(emptyGrid(), 6, 12, 'E');
   const game = quietGame({ grid });

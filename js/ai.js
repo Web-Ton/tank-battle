@@ -14,7 +14,7 @@ export function isAligned(a, b, tolerance = 6) {
  * 目标与自身在某一轴上对齐时，返回沿该轴指向目标的开火方向；两轴都未对齐返回 null。
  * 两轴同时对齐（贴合）时按 preferred（当前朝向）优先，避免选到无关轴向。
  */
-export function aimDirection(self, target, tolerance = 6, preferred = null) {
+export function aimDirection(self, target, preferred = null, tolerance = 6) {
   const ca = center(self);
   const cb = center(target);
   const dx = cb.x - ca.x;

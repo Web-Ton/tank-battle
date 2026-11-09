@@ -140,7 +140,7 @@ export class Game {
 
   spawnEnemy() {
     if (this.spawnQueue <= 0 || this.enemies.length >= MAX_ACTIVE_ENEMIES) return false;
-    const others = [this.player, ...this.enemies].map((tank) => tank.rect);
+    const others = [this.player, ...this.enemies].filter(Boolean).map((tank) => tank.rect);
     for (let attempt = 0; attempt < ENEMY_SPAWNS.length; attempt += 1) {
       const slot = ENEMY_SPAWNS[(this.spawnAttempt + attempt) % ENEMY_SPAWNS.length];
       const enemy = this.createEnemy(slot.col, slot.row);
@@ -234,7 +234,7 @@ export class Game {
         : baseRect && isAligned(enemy.rect, baseRect)
           ? baseRect
           : null;
-      const aimDir = aimedAt ? aimDirection(enemy.rect, aimedAt, 6, enemy.dir) : null;
+      const aimDir = aimedAt ? aimDirection(enemy.rect, aimedAt, enemy.dir) : null;
       if (aimDir && enemy.dir === aimDir && shouldFire(enemy.rect, aimedAt, enemy.cooldown, this.rng)) {
         this.fireTank(enemy);
       }
