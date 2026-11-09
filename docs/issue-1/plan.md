@@ -17,27 +17,27 @@ config → collision/map → tank/bullet → ai → game → render → index.ht
 ## Task List
 
 ### Phase 1: 基础逻辑（TDD 红→绿）
-- [ ] Task 1: 碰撞与地图（AABB、网格解析、砖墙可毁、钢墙/基地）
-- [ ] Task 2: 坦克/子弹实体与移动判定
-- [ ] Task 3: 敌方 AI 方向选择
+- [x] Task 1: 碰撞与地图（AABB、网格解析、砖墙可毁、钢墙/基地）
+- [x] Task 2: 坦克/子弹实体与移动判定
+- [x] Task 3: 敌方 AI 方向选择
 
 ### Checkpoint: 基础
-- [ ] `node --test tests/` 全绿
-- [ ] 纯逻辑模块无 DOM 依赖
+- [x] `node --test tests/*.test.js` 全绿
+- [x] 纯逻辑模块无 DOM 依赖
 
 ### Phase 2: 游戏状态机
-- [ ] Task 4: 主循环 `Game`（移动/开火/命中/计分/敌人刷新/关卡推进/失败重开）
+- [x] Task 4: 主循环 `Game`（移动/开火/命中/计分/敌人刷新/关卡推进/失败重开）
 
 ### Checkpoint: 核心
-- [ ] 状态机测试全绿（击毁得分、清关推进、基地/生命失败）
+- [x] 状态机测试全绿（击毁得分、清关推进、基地/生命失败）
 
 ### Phase 3: 表现层
-- [ ] Task 5: Canvas 渲染 + HUD + 输入 + 页面样式
-- [ ] Task 6: 一次性 HTTP 运行验证 + 手动验收
+- [x] Task 5: Canvas 渲染 + HUD + 输入 + 页面样式
+- [x] Task 6: 一次性 HTTP 运行验证 + 手动验收
 
 ### Checkpoint: 完成
-- [ ] 全部验收标准满足
-- [ ] `node --test tests/` 全绿
+- [x] 全部验收标准满足
+- [x] `node --test tests/*.test.js` 全绿
 
 ## Risks and Mitigations
 | Risk | Impact | Mitigation |

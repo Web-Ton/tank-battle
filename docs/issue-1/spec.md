@@ -13,7 +13,7 @@
 # 运行（本地）
 python3 -m http.server 8080     # 浏览器打开 http://localhost:8080/
 # 测试
-node --test tests/
+node --test tests/*.test.js
 # 一次性运行验证
 python3 -m http.server 8080 >/tmp/httpd.log 2>&1 & sleep 1; curl -s http://localhost:8080/ | head -20; kill %1
 ```
