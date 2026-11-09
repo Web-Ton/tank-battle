@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { chooseDirection, isAligned, shouldFire } from '../js/ai.js';
+import { chooseDirection, isAligned, shouldFire, aimDirection } from '../js/ai.js';
 
 const allowAll = () => true;
 
@@ -34,4 +34,13 @@ test('shouldFire triggers on aligned target or random chance', () => {
   assert.equal(shouldFire(self, aligned, 0, () => 1), true);
   assert.equal(shouldFire(self, far, 0, () => 0.99), false);
   assert.equal(shouldFire(self, far, 0, () => 0.01), true);
+});
+
+test('aimDirection reports the direction along the aligned axis only', () => {
+  const self = { x: 100, y: 100, w: 28, h: 28 };
+  assert.equal(aimDirection(self, { x: 104, y: 300, w: 28, h: 28 }), 'down');
+  assert.equal(aimDirection(self, { x: 104, y: -100, w: 28, h: 28 }), 'up');
+  assert.equal(aimDirection(self, { x: 300, y: 104, w: 28, h: 28 }), 'right');
+  assert.equal(aimDirection(self, { x: -100, y: 104, w: 28, h: 28 }), 'left');
+  assert.equal(aimDirection(self, { x: 300, y: 300, w: 28, h: 28 }), null);
 });

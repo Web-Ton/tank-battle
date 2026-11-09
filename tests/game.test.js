@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Game, STATE_PLAYING, STATE_LOST, STATE_CLEAR } from '../js/game.js';
 import { TILE, ENEMY_SCORE, PLAYER_LIVES, PLAYER_SPAWN } from '../js/config.js';
+import { rectsOverlap } from '../js/collision.js';
 import { emptyGrid, setCell } from './helpers.js';
 
 function quietGame(extra = {}) {
@@ -127,4 +128,73 @@ test('player movement input moves the tank in the requested direction', () => {
   game.update(0.5, { left: true });
   assert.equal(game.player.dir, 'left');
   assert.ok(game.player.x < startX);
+});
+
+test('player cannot drive through an enemy tank', () => {
+  const game = quietGame({ grid: emptyGrid() });
+  const enemy = game.createEnemy(0, 0);
+  enemy.x = game.player.x + 2 * TILE;
+  enemy.y = game.player.y;
+  game.enemies.push(enemy);
+  game.update(0.5, { right: true });
+  assert.equal(rectsOverlap(game.player.rect, enemy.rect), false);
+});
+
+test('enemy does not fire when its facing direction is off the aim axis', () => {
+  const grid = setCell(emptyGrid(), 7, 6, 'S');
+  const game = quietGame({ grid });
+  game.player.x = 4 * TILE + (TILE - game.player.rect.w) / 2;
+  game.player.y = 6 * TILE + (TILE - game.player.rect.h) / 2;
+  const enemy = game.createEnemy(8, 6);
+  game.enemies.push(enemy);
+  game.update(0.016, {});
+  assert.equal(enemy.dir, 'down');
+  assert.equal(game.bullets.length, 0);
+});
+
+test('player respawn avoids an enemy parked on the spawn point', () => {
+  const game = quietGame({ grid: emptyGrid() });
+  const enemy = game.createEnemy(PLAYER_SPAWN.col, PLAYER_SPAWN.row);
+  game.enemies.push(enemy);
+  game.killPlayer();
+  assert.equal(game.lives, PLAYER_LIVES - 1);
+  assert.ok(game.player);
+  assert.equal(rectsOverlap(game.player.rect, enemy.rect), false);
+});
+
+test('player respawn is delayed while every spawn candidate is blocked', () => {
+  let grid = emptyGrid();
+  for (const [col, row] of [
+    [PLAYER_SPAWN.col - 1, PLAYER_SPAWN.row],
+    [PLAYER_SPAWN.col + 1, PLAYER_SPAWN.row],
+    [PLAYER_SPAWN.col, PLAYER_SPAWN.row - 1],
+    [PLAYER_SPAWN.col, PLAYER_SPAWN.row + 1],
+  ]) {
+    grid = setCell(grid, col, row, 'S');
+  }
+  const game = quietGame({ grid });
+  const enemy = game.createEnemy(PLAYER_SPAWN.col, PLAYER_SPAWN.row);
+  game.enemies.push(enemy);
+  game.killPlayer();
+  assert.equal(game.player, null);
+  assert.ok(game.respawnTimer > 0);
+  assert.equal(game.state, STATE_PLAYING);
+
+  game.enemies = [];
+  game.update(1, {});
+  assert.ok(game.player);
+  assert.equal(game.player.x, PLAYER_SPAWN.col * TILE + (TILE - game.player.rect.w) / 2);
+});
+
+test('player bullet does not destroy the friendly base', () => {
+  const grid = setCell(emptyGrid(), 6, 12, 'E');
+  const game = quietGame({ grid });
+  game.player.dir = 'up';
+  const bullet = game.fireTank(game.player);
+  assert.ok(bullet);
+  bullet.x = 6 * TILE + TILE / 2;
+  bullet.y = 12 * TILE + TILE / 2;
+  game.update(0.01, {});
+  assert.equal(game.map.baseAlive, true);
+  assert.equal(game.state, STATE_PLAYING);
 });
