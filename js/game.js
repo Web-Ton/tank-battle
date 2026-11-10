@@ -1,6 +1,8 @@
 import {
   TILE,
   TANK_SIZE,
+  COLS,
+  ROWS,
   LEVELS,
   DIRS,
   PLAYER_SPEED,
@@ -24,6 +26,7 @@ import { chooseDirection, isAligned, shouldFire, aimDirection } from './ai.js';
 
 export const STATE_PLAYING = 'playing';
 export const STATE_CLEAR = 'levelclear';
+export const STATE_ALL_CLEAR = 'allclear';
 export const STATE_LOST = 'lost';
 
 const BULLET_STEP = 4;
@@ -54,16 +57,29 @@ export class Game {
     return this.levelIndex + 1;
   }
 
+  get levelCount() {
+    return LEVELS.length;
+  }
+
   get level() {
-    return LEVELS[this.levelIndex % LEVELS.length];
+    return LEVELS[this.levelIndex] ?? null;
+  }
+
+  get isFinalLevel() {
+    return this.levelIndex >= LEVELS.length - 1;
   }
 
   get remainingEnemies() {
     return this.spawnQueue + this.enemies.length;
   }
 
+  blankGrid() {
+    return Array.from({ length: ROWS }, () => '.'.repeat(COLS));
+  }
+
   resetLevel(grid = null) {
-    this.map = new TileMap(grid || this.level.grid);
+    const level = this.level;
+    this.map = new TileMap(grid || (level ? level.grid : this.blankGrid()));
     this.player = this.createPlayer();
     this.enemies = [];
     this.bullets = [];
@@ -315,15 +331,16 @@ export class Game {
 
   checkLevelClear() {
     if (this.state !== STATE_PLAYING) return;
-    if (this.spawnQueue <= 0 && this.enemies.length === 0) {
-      this.state = STATE_CLEAR;
-    }
+    if (this.remainingEnemies > 0) return;
+    this.state = this.isFinalLevel ? STATE_ALL_CLEAR : STATE_CLEAR;
   }
 
   nextLevel() {
+    if (this.isFinalLevel) return false;
     this.levelIndex += 1;
     this.enemyTotal = enemyTotalForLevel(this.levelIndex);
     this.resetLevel();
+    return true;
   }
 
   restart() {

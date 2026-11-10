@@ -1,7 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, STATE_PLAYING, STATE_LOST, STATE_CLEAR } from '../js/game.js';
-import { TILE, ENEMY_SCORE, PLAYER_LIVES, PLAYER_SPAWN } from '../js/config.js';
+import { Game, STATE_PLAYING, STATE_LOST, STATE_CLEAR, STATE_ALL_CLEAR } from '../js/game.js';
+import {
+  TILE,
+  ENEMY_SCORE,
+  PLAYER_LIVES,
+  PLAYER_SPAWN,
+  LEVELS,
+  MAX_ACTIVE_ENEMIES,
+  enemyTotalForLevel,
+} from '../js/config.js';
 import { rectsOverlap } from '../js/collision.js';
 import { emptyGrid, setCell } from './helpers.js';
 
@@ -204,4 +212,107 @@ test('player bullet does not destroy the friendly base', () => {
   game.update(0.01, {});
   assert.equal(game.map.baseAlive, true);
   assert.equal(game.state, STATE_PLAYING);
+});
+test('level getter reads LEVELS by index and returns null when out of range', () => {
+  const game = quietGame();
+  assert.equal(game.level, LEVELS[0]);
+  game.levelIndex = LEVELS.length - 1;
+  assert.equal(game.level, LEVELS.at(-1));
+  game.levelIndex = LEVELS.length;
+  assert.equal(game.level, null);
+  game.levelIndex = -1;
+  assert.equal(game.level, null);
+});
+
+test('levelCount and isFinalLevel follow the LEVELS length', () => {
+  const game = quietGame();
+  assert.equal(game.levelCount, LEVELS.length);
+  assert.equal(game.isFinalLevel, false);
+  game.levelIndex = LEVELS.length - 1;
+  assert.equal(game.isFinalLevel, true);
+});
+
+test('new game takes enemy total from config: 20 left, max 4 on field', () => {
+  const game = new Game({ grid: emptyGrid(), rng: () => 0.5 });
+  assert.equal(MAX_ACTIVE_ENEMIES, 4);
+  assert.equal(game.enemyTotal, 20);
+  assert.equal(game.enemyTotal, enemyTotalForLevel(0));
+  assert.equal(game.remainingEnemies, 20);
+  assert.equal(game.enemies.length, 1);
+});
+
+test('remainingEnemies counts spawn queue plus enemies on field', () => {
+  const game = quietGame({ grid: emptyGrid() });
+  game.spawnQueue = 7;
+  game.enemies = [];
+  assert.equal(game.remainingEnemies, 7);
+  game.enemies.push(game.createEnemy(0, 5));
+  assert.equal(game.remainingEnemies, 8);
+  game.spawnEnemy();
+  assert.equal(game.spawnQueue, 6);
+  assert.equal(game.enemies.length, 2);
+  assert.equal(game.remainingEnemies, 8);
+});
+
+test('spawnEnemy stops at the 4-tank cap without consuming the queue', () => {
+  const game = quietGame({ grid: emptyGrid() });
+  game.enemies = [];
+  game.spawnQueue = 10;
+  for (const [col, row] of [
+    [0, 4],
+    [5, 5],
+    [9, 8],
+    [2, 9],
+  ]) {
+    game.enemies.push(game.createEnemy(col, row));
+  }
+  assert.equal(game.enemies.length, MAX_ACTIVE_ENEMIES);
+  const before = game.spawnQueue;
+  assert.equal(game.spawnEnemy(), false);
+  assert.equal(game.spawnQueue, before);
+  assert.equal(game.enemies.length, MAX_ACTIVE_ENEMIES);
+});
+
+test('enemies on field never exceed the cap while the level keeps spawning', () => {
+  const game = new Game({ grid: emptyGrid(), rng: () => 0.5 });
+  assert.equal(game.enemyTotal, 20);
+  for (let step = 0; step < 400; step += 1) {
+    game.update(0.1, {});
+    assert.ok(game.enemies.length <= MAX_ACTIVE_ENEMIES, `第 ${step} 帧同屏 ${game.enemies.length} 辆`);
+    assert.ok(game.spawnQueue >= 0);
+  }
+});
+
+test('clearing a non-final level enters STATE_CLEAR and next level loads its config', () => {
+  const game = quietGame();
+  game.spawnQueue = 0;
+  game.enemies = [];
+  game.update(0.016, {});
+  assert.equal(game.state, STATE_CLEAR);
+  assert.equal(game.nextLevel(), true);
+  assert.equal(game.levelNumber, 2);
+  assert.equal(game.enemyTotal, enemyTotalForLevel(1));
+  assert.equal(game.remainingEnemies, 20);
+  assert.equal(game.state, STATE_PLAYING);
+});
+
+test('clearing the final level enters STATE_ALL_CLEAR and never loops back', () => {
+  const game = quietGame({ levelIndex: LEVELS.length - 1, grid: emptyGrid() });
+  game.spawnQueue = 0;
+  game.enemies = [];
+  game.update(0.016, {});
+  assert.equal(game.state, STATE_ALL_CLEAR);
+  assert.equal(game.remainingEnemies, 0);
+  assert.equal(game.nextLevel(), false);
+  assert.equal(game.levelNumber, LEVELS.length);
+  assert.equal(game.state, STATE_ALL_CLEAR);
+  assert.equal(game.remainingEnemies, 0);
+});
+
+test('restart resets enemy total from the level config', () => {
+  const game = quietGame({ levelIndex: LEVELS.length - 1, enemyTotal: 3 });
+  game.restart();
+  assert.equal(game.levelNumber, 1);
+  assert.equal(game.enemyTotal, enemyTotalForLevel(0));
+  assert.equal(game.remainingEnemies, 20);
 });
