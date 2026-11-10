@@ -31,10 +31,15 @@ body {
 .hud {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: 10px;
   margin-bottom: 12px;
-  font-size: 15px;
+  font-size: 14px;
   letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.hud .remaining strong {
+  color: #e8c547;
 }
 
 .hud span strong {
