@@ -1,0 +1,10 @@
+{
+  "name": "tank-battle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Battle City style tank battle game (HTML5 Canvas, zero dependencies)",
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  }
+}

@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+
+# Platform workspace artifacts
+.git-askpass.sh
+.project-info/
+.skills/
