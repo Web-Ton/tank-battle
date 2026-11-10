@@ -11,7 +11,8 @@
       <header class="hud">
         <span>得分 <strong id="score">0</strong></span>
         <span>生命 <strong id="lives">3</strong></span>
-        <span class="level" id="level">第 1 关 · 前哨</span>
+        <span class="remaining">剩余 <strong id="remaining">20</strong></span>
+        <span class="level" id="level">第 1/10 关 · 前哨</span>
       </header>
       <div class="stage">
         <canvas id="game" width="416" height="416"></canvas>
@@ -23,18 +24,19 @@
       </div>
       <p class="help">
         <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 移动 ·
-        <kbd>空格</kbd> 开火 · <kbd>Enter</kbd> 失败后重开
+        <kbd>空格</kbd> 开火 · <kbd>Enter</kbd> 失败后重开 · <kbd>Enter</kbd> / <kbd>R</kbd> 通关后重开
       </p>
     </main>
 
     <script type="module">
-      import { Game, STATE_LOST, STATE_CLEAR } from './js/game.js';
+      import { Game, STATE_LOST, STATE_CLEAR, STATE_ALL_CLEAR } from './js/game.js';
       import { draw } from './js/render.js';
 
       const canvas = document.getElementById('game');
       const ctx = canvas.getContext('2d');
       const scoreEl = document.getElementById('score');
       const livesEl = document.getElementById('lives');
+      const remainingEl = document.getElementById('remaining');
       const levelEl = document.getElementById('level');
       const overlay = document.getElementById('overlay');
       const overlayTitle = document.getElementById('overlay-title');
@@ -58,11 +60,17 @@
       window.addEventListener('keydown', (event) => {
         if (CONTROL_KEYS.has(event.key)) event.preventDefault();
         keys[event.key] = true;
-        if (event.key === 'Enter' && game.state === STATE_LOST) {
+        if (isRestartKey(event.key)) {
           hideOverlay();
           game.restart();
         }
       });
+
+      function isRestartKey(key) {
+        if (game.state === STATE_LOST) return key === 'Enter';
+        if (game.state === STATE_ALL_CLEAR) return key === 'Enter' || key === 'r' || key === 'R';
+        return false;
+      }
 
       window.addEventListener('keyup', (event) => {
         keys[event.key] = false;
@@ -83,7 +91,10 @@
       function updateHud() {
         scoreEl.textContent = String(game.score);
         livesEl.textContent = String(game.lives);
-        levelEl.textContent = `第 ${game.levelNumber} 关 · ${game.level.name}`;
+        remainingEl.textContent = String(game.remainingEnemies);
+        levelEl.textContent = game.level
+          ? `第 ${game.levelNumber}/${game.levelCount} 关 · ${game.level.name}`
+          : '关卡结束';
       }
 
       function frame(time) {
@@ -104,6 +115,13 @@
 
         if (game.state === STATE_LOST) {
           showOverlay('GAME OVER', '基地被毁或生命耗尽', '按 Enter 重新开始', true);
+        } else if (game.state === STATE_ALL_CLEAR) {
+          showOverlay(
+            '全部关卡完成',
+            `${game.levelCount} 关全部通关 · 最终得分 ${game.score}`,
+            '按 Enter 或 R 重新开始',
+            false,
+          );
         } else if (game.state === STATE_CLEAR) {
           showOverlay('关卡完成', '准备进入下一关…', `得分 ${game.score}`, false);
           if (clearTimer === null) {

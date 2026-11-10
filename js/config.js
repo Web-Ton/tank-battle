@@ -13,7 +13,7 @@ export const PLAYER_FIRE_COOLDOWN = 0.35;
 export const PLAYER_RESPAWN_DELAY = 0.6;
 export const ENEMY_FIRE_COOLDOWN = 1.2;
 export const ENEMY_SCORE = 100;
-export const MAX_ACTIVE_ENEMIES = 3;
+export const MAX_ACTIVE_ENEMIES = 4;
 
 export const DIRS = {
   up: { x: 0, y: -1 },
@@ -41,6 +41,7 @@ export const ENEMY_SPAWNS = [
 export const LEVELS = [
   {
     name: '前哨',
+    enemyTotal: 20,
     grid: [
       '.............',
       '.BB.BB.BB.BB.',
@@ -59,6 +60,7 @@ export const LEVELS = [
   },
   {
     name: '迷宫',
+    enemyTotal: 20,
     grid: [
       '..B.......B..',
       '.B.B.BBB.B.B.',
@@ -77,6 +79,7 @@ export const LEVELS = [
   },
   {
     name: '钢堡',
+    enemyTotal: 20,
     grid: [
       '.............',
       '.S.S.S.S.S.S.',
@@ -93,8 +96,143 @@ export const LEVELS = [
       '...p.BBB.....',
     ],
   },
+  {
+    name: '走廊',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '.SB.SB.SB.SB.',
+      '.............',
+      '.SB.SB.SB.SB.',
+      '.............',
+      '..SS.SS.SS...',
+      '.............',
+      '.BB.BB.BB.BB.',
+      '.............',
+      '.SS.BBB.BB.S.',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '回廊',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '.BBBB.BBBBBB.',
+      '.B.........B.',
+      '.B.SS...SS.B.',
+      '.B.SS...SS.B.',
+      '.B.........B.',
+      '.B.BB.BB.BB.B',
+      '.B.BB.BB.BB.B',
+      '.B.........B.',
+      '.BBBB.BBBBBB.',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '十字',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '..B..BSB..B..',
+      '..B..BSB..B..',
+      '..B.......B..',
+      '..B.BB.BB.B..',
+      '.....B.B.....',
+      '.SS.BB.BB.SS.',
+      '.....B.B.....',
+      '..B.BB.BB.B..',
+      '..B.......B..',
+      '..B..BBB..B..',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '岔路',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '.BB.BBB.BBB.B',
+      '.BB...B...BB.',
+      '......B......',
+      'BB.BB...BB.BB',
+      '.....B.B.....',
+      '.BB..B.B..BB.',
+      '.....B.B.....',
+      'BB.BB...BB.BB',
+      '......B......',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '阵地',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '..SS..B..SS..',
+      '..SS..B..SS..',
+      '......B......',
+      '.BBB..B..BBB.',
+      '...B.....B...',
+      'BB.B.BBB.B.BB',
+      '...B.....B...',
+      '.BBB..B..BBB.',
+      '......B......',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '铁幕',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      '.SS.SSS.SS.S.',
+      '.SS.SSS.SS.S.',
+      '...S.....S...',
+      '.BBB.B.B.BBB.',
+      '.B...B.B...B.',
+      '.B.BBB.BBB.B.',
+      '.B...B.B...B.',
+      '.BBB.B.B.BBB.',
+      '...S.....S...',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
+  {
+    name: '终局',
+    enemyTotal: 20,
+    grid: [
+      '.............',
+      'SS.B.B.B.B.SS',
+      '...B.B.B.B...',
+      '.BB.B...B.BB.',
+      '.BB.B.B.B.BB.',
+      '.....B.B.....',
+      'BBB.......BBB',
+      '.....B.B.....',
+      '.BB.B.B.B.BB.',
+      '.BB.B...B.BB.',
+      '.....BBB.....',
+      '.....BEB.....',
+      '...p.BBB.....',
+    ],
+  },
 ];
 
 export function enemyTotalForLevel(levelIndex) {
-  return 4 + levelIndex * 2;
+  if (!Number.isInteger(levelIndex) || levelIndex < 0) return 0;
+  const level = LEVELS[levelIndex];
+  return level ? level.enemyTotal : 0;
 }
